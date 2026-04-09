@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MDB Climate Finance Dashboard</title>
+  <!-- v3 -->
   <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css">
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
   <style>
@@ -382,6 +383,7 @@ function initTable(data) {
         formatter: fmtProject,
         variableHeight: true,
       },
+      { title: 'Project ID', field: 'project_id', width: 130 },
       { title: 'MDB',      field: 'mdb',      minWidth: 80, maxWidth: 240 },
       { title: 'Year',     field: 'year',     width: 65,  hozAlign: 'center' },
       { title: 'Month',    field: 'month',    width: 100, hozAlign: 'center', formatter: fmtMonth },
@@ -424,8 +426,6 @@ function initTable(data) {
     ],
   });
 
-  table.on('dataLoaded', () => updateResultsBar(table.getData()));
-  table.on('dataChanged', () => updateResultsBar(table.getData()));
 }
 
 // ── Bootstrap ──
