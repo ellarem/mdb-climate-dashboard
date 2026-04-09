@@ -186,8 +186,14 @@
 <body>
 
 <header>
-  <h1>MDB Climate Finance Dashboard</h1>
-  <p>2021–2024 &nbsp;|&nbsp; 7 Multilateral Development Banks</p>
+  <div>
+    <h1>MDB Climate Finance Dashboard</h1>
+    <p>2021–2024 &nbsp;|&nbsp; 7 Multilateral Development Banks</p>
+  </div>
+  <div style="margin-left:auto; text-align:right; font-size:12px; opacity:0.8; line-height:1.5;">
+    <span style="opacity:0.7;">by</span><br>
+    <strong style="font-size:13px; letter-spacing:0.2px;">Publish What You Fund</strong>
+  </div>
 </header>
 
 <main>
@@ -381,9 +387,16 @@ function populateMDBs() {
 
 function populateCountries() {
   const sel = document.getElementById('f-country');
-  const singles = [...new Set(
-    allData.map(r => r.country).filter(c => c && !c.includes(';') && c !== 'Regional' && c !== 'Multicountry')
-  )].sort();
+  // Deduplicate case-insensitively, keep original casing, sort A-Z
+  const seen = new Map();
+  allData.forEach(r => {
+    const c = r.country;
+    if (c && !c.includes(';') && c !== 'Regional' && c !== 'Multicountry') {
+      const key = c.toLowerCase();
+      if (!seen.has(key)) seen.set(key, c);
+    }
+  });
+  const singles = [...seen.values()].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
   singles.forEach(c => {
     const o = document.createElement('option');
     o.value = c; o.textContent = c;
