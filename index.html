@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MDB Climate Finance Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css">
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif;
+      font-size: 14px;
+      background: #f5f6f8;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1b5e20;
+      color: #fff;
+      padding: 20px 32px 18px;
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    header p  { font-size: 13px; opacity: 0.75; }
+
+    /* ── Main container ── */
+    main { max-width: 1500px; margin: 0 auto; padding: 20px 24px 40px; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      background: #fff;
+      border: 1px solid #e0e4ea;
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
+    .filter-group label { font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-group input,
+    .filter-group select {
+      height: 34px;
+      border: 1px solid #d0d5dd;
+      border-radius: 6px;
+      padding: 0 10px;
+      font-size: 13px;
+      color: #1a1a2e;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .filter-group input:focus,
+    .filter-group select:focus { border-color: #2e7d32; box-shadow: 0 0 0 2px rgba(46,125,50,0.12); }
+    .filter-group.search-group { min-width: 220px; }
+
+    .btn-reset {
+      height: 34px;
+      padding: 0 16px;
+      background: #fff;
+      border: 1px solid #d0d5dd;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.15s;
+      align-self: flex-end;
+    }
+    .btn-reset:hover { border-color: #2e7d32; color: #2e7d32; }
+
+    /* ── Results bar ── */
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding: 0 2px;
+    }
+    .results-bar .count {
+      font-size: 13px;
+      color: #555;
+    }
+    .results-bar .count strong { color: #1a1a2e; }
+    .results-bar .total-cf {
+      font-size: 13px;
+      color: #555;
+    }
+    .results-bar .total-cf strong { color: #1b5e20; }
+
+    /* ── Table wrapper ── */
+    .table-wrap {
+      background: #fff;
+      border: 1px solid #e0e4ea;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    /* ── Tabulator overrides ── */
+    .tabulator {
+      border: none !important;
+      font-family: inherit !important;
+      font-size: 13px !important;
+    }
+    .tabulator .tabulator-header {
+      background: #f8f9fb !important;
+      border-bottom: 1px solid #e0e4ea !important;
+    }
+    .tabulator .tabulator-header .tabulator-col {
+      background: #f8f9fb !important;
+      border-right: 1px solid #eaedf2 !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #555 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .tabulator .tabulator-header .tabulator-col:last-child { border-right: none !important; }
+    .tabulator .tabulator-header .tabulator-col .tabulator-col-title { padding: 10px 8px !important; }
+    .tabulator-row { border-bottom: 1px solid #f0f2f5 !important; }
+    .tabulator-row:hover { background: #f6faf6 !important; }
+    .tabulator-row .tabulator-cell { padding: 9px 8px !important; border-right: 1px solid #f0f2f5 !important; }
+    .tabulator-row .tabulator-cell:last-child { border-right: none !important; }
+    .tabulator-footer {
+      border-top: 1px solid #e0e4ea !important;
+      background: #f8f9fb !important;
+      padding: 8px 12px !important;
+    }
+    .tabulator-footer .tabulator-page {
+      border: 1px solid #d0d5dd !important;
+      border-radius: 4px !important;
+      font-size: 12px !important;
+      padding: 3px 8px !important;
+      margin: 0 2px !important;
+    }
+    .tabulator-footer .tabulator-page.active {
+      background: #2e7d32 !important;
+      color: #fff !important;
+      border-color: #2e7d32 !important;
+    }
+
+    .project-link { color: #2e7d32; text-decoration: none; }
+    .project-link:hover { text-decoration: underline; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-mitigation  { background: #e8f5e9; color: #2e7d32; }
+    .badge-adaptation  { background: #e3f2fd; color: #1565c0; }
+    .badge-dual-use    { background: #fff3e0; color: #e65100; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      margin-top: 32px;
+      font-size: 12px;
+      color: #999;
+    }
+    footer a { color: #2e7d32; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>MDB Climate Finance Dashboard</h1>
+  <p>2021–2024 &nbsp;|&nbsp; 7 Multilateral Development Banks</p>
+</header>
+
+<main>
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="filter-group search-group">
+      <label>Search</label>
+      <input type="text" id="search" placeholder="Project name or country…">
+    </div>
+
+    <div class="filter-group">
+      <label>MDB</label>
+      <select id="f-mdb"><option value="">All MDBs</option></select>
+    </div>
+
+    <div class="filter-group">
+      <label>Year</label>
+      <select id="f-year">
+        <option value="">All years</option>
+        <option>2021</option>
+        <option>2022</option>
+        <option>2023</option>
+        <option>2024</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Month</label>
+      <select id="f-month">
+        <option value="">All months</option>
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Type</label>
+      <select id="f-type">
+        <option value="">All types</option>
+        <option>Mitigation</option>
+        <option>Adaptation</option>
+        <option>Dual-use</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Sovereign</label>
+      <select id="f-sovereign">
+        <option value="">All</option>
+        <option value="Sovereign">Sovereign</option>
+        <option value="Nonsovereign">Non-sovereign</option>
+      </select>
+    </div>
+
+    <button class="btn-reset" id="btn-reset">Reset filters</button>
+  </div>
+
+  <!-- Results bar -->
+  <div class="results-bar">
+    <div class="count" id="result-count">Loading…</div>
+    <div class="total-cf" id="result-cf"></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div id="table"></div>
+  </div>
+</main>
+
+<footer>
+  <p>
+    Data: <a href="https://www.mdb-cf.org" target="_blank">MDB Climate Finance Dataset v2.0</a>
+    &nbsp;|&nbsp; Dashboard built with <a href="https://tabulator.info" target="_blank">Tabulator</a>
+  </p>
+</footer>
+
+<script>
+const MONTHS = ['','January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+
+let allData = [];
+let table;
+
+// ── Formatters ──
+function fmtCF(cell) {
+  const v = cell.getValue();
+  if (v === null || v === undefined) return '<span style="color:#ccc">—</span>';
+  return '$' + v.toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'M';
+}
+
+function fmtType(cell) {
+  const v = cell.getValue();
+  if (!v) return '';
+  const cls = v === 'Mitigation' ? 'badge-mitigation' : v === 'Adaptation' ? 'badge-adaptation' : 'badge-dual-use';
+  return `<span class="badge ${cls}">${v}</span>`;
+}
+
+function fmtProject(cell) {
+  const row = cell.getRow().getData();
+  const name = cell.getValue() || '(unnamed)';
+  if (row.url) {
+    return `<a class="project-link" href="${row.url}" target="_blank" rel="noopener">${name}</a>`;
+  }
+  return name;
+}
+
+function fmtMonth(cell) {
+  const v = cell.getValue();
+  return v ? MONTHS[v] : '';
+}
+
+// ── Update results bar ──
+function updateResultsBar(rows) {
+  const n = rows.length;
+  const total = rows.reduce((s, r) => s + (r.climate_finance || 0), 0);
+  document.getElementById('result-count').innerHTML =
+    `Showing <strong>${n.toLocaleString()}</strong> of <strong>${allData.length.toLocaleString()}</strong> projects`;
+  document.getElementById('result-cf').innerHTML =
+    `Total climate finance reported: <strong>$${total.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})}M</strong>`;
+}
+
+// ── Apply all filters ──
+function applyFilters() {
+  const search   = document.getElementById('search').value.trim().toLowerCase();
+  const mdb      = document.getElementById('f-mdb').value;
+  const year     = document.getElementById('f-year').value;
+  const month    = document.getElementById('f-month').value;
+  const type     = document.getElementById('f-type').value;
+  const sovereign= document.getElementById('f-sovereign').value;
+
+  const filtered = allData.filter(r => {
+    if (mdb      && r.mdb      !== mdb)            return false;
+    if (year     && String(r.year) !== year)        return false;
+    if (month    && String(r.month) !== month)      return false;
+    if (type     && r.type !== type)                return false;
+    if (sovereign && r.sovereign !== sovereign)      return false;
+    if (search) {
+      const haystack = ((r.project_name || '') + ' ' + (r.country || '')).toLowerCase();
+      if (!haystack.includes(search))               return false;
+    }
+    return true;
+  });
+
+  table.replaceData(filtered);
+  updateResultsBar(filtered);
+}
+
+// ── Populate MDB dropdown ──
+function populateMDBs() {
+  const mdbs = [...new Set(allData.map(r => r.mdb).filter(Boolean))].sort();
+  const sel = document.getElementById('f-mdb');
+  mdbs.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Wire up filter events ──
+function bindFilters() {
+  ['search','f-mdb','f-year','f-month','f-type','f-sovereign'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', applyFilters);
+  });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    document.getElementById('search').value = '';
+    ['f-mdb','f-year','f-month','f-type','f-sovereign'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    applyFilters();
+  });
+}
+
+// ── Init Tabulator ──
+function initTable(data) {
+  table = new Tabulator('#table', {
+    data: data,
+    layout: 'fitColumns',
+    pagination: true,
+    paginationSize: 50,
+    paginationSizeSelector: [25, 50, 100],
+    movableColumns: false,
+    reactiveData: false,
+    height: '70vh',
+    columns: [
+      {
+        title: 'Project name',
+        field: 'project_name',
+        minWidth: 260,
+        formatter: fmtProject,
+        variableHeight: true,
+      },
+      { title: 'MDB',      field: 'mdb',      minWidth: 80, maxWidth: 240 },
+      { title: 'Year',     field: 'year',     width: 65,  hozAlign: 'center' },
+      { title: 'Month',    field: 'month',    width: 100, hozAlign: 'center', formatter: fmtMonth },
+      { title: 'Country',  field: 'country',  minWidth: 120, maxWidth: 180 },
+      { title: 'Type',     field: 'type',     width: 110, hozAlign: 'center', formatter: fmtType },
+      {
+        title: 'Climate finance ($M)',
+        field: 'climate_finance',
+        width: 155,
+        hozAlign: 'right',
+        sorter: 'number',
+        formatter: fmtCF,
+      },
+      {
+        title: 'Mitigation ($M)',
+        field: 'mitigation',
+        width: 130,
+        hozAlign: 'right',
+        sorter: 'number',
+        formatter: fmtCF,
+      },
+      {
+        title: 'Adaptation ($M)',
+        field: 'adaptation',
+        width: 130,
+        hozAlign: 'right',
+        sorter: 'number',
+        formatter: fmtCF,
+      },
+      {
+        title: 'Total commitment ($M)',
+        field: 'total_commitment',
+        width: 165,
+        hozAlign: 'right',
+        sorter: 'number',
+        formatter: fmtCF,
+      },
+      { title: 'Instrument', field: 'instrument', minWidth: 120, maxWidth: 180 },
+      { title: 'Sovereign',  field: 'sovereign',  width: 115, hozAlign: 'center' },
+    ],
+  });
+
+  table.on('dataLoaded', () => updateResultsBar(table.getData()));
+  table.on('dataChanged', () => updateResultsBar(table.getData()));
+}
+
+// ── Bootstrap ──
+fetch('data.json')
+  .then(r => r.json())
+  .then(data => {
+    allData = data;
+    populateMDBs();
+    bindFilters();
+    initTable(allData);
+    updateResultsBar(allData);
+  })
+  .catch(err => {
+    document.getElementById('table').innerHTML =
+      `<p style="padding:24px;color:#c00">Failed to load data: ${err.message}</p>`;
+  });
+</script>
+</body>
+</html>
