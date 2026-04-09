@@ -159,11 +159,43 @@
     footer a { color: #2e7d32; }
 
 
-    /* ── Country multi-select ── */
-    #f-country { min-width: 180px; cursor: pointer; border-radius: 6px; border: 1px solid #d0d5dd; font-size: 13px; padding: 4px 0; }
-    #f-country option:checked { background: #e8f5e9; color: #1b5e20; font-weight: 600; }
-    .country-hint { font-size: 10px; color: #999; margin-top: 2px; }
-    .country-filter-group { align-self: flex-start; }
+    /* ── Country dropdown ── */
+    .country-filter-group { align-self: flex-start; min-width: 190px; }
+    .country-details { position: relative; }
+    .country-details summary {
+      height: 34px; padding: 0 10px; border: 1px solid #d0d5dd; border-radius: 6px;
+      font-size: 13px; color: #1a1a2e; background: #fff; cursor: pointer;
+      display: flex; align-items: center; list-style: none; user-select: none;
+      transition: border-color 0.15s;
+    }
+    .country-details summary::-webkit-details-marker { display: none; }
+    .country-details[open] summary { border-color: #2e7d32; box-shadow: 0 0 0 2px rgba(46,125,50,0.12); }
+    .country-details summary.has-selection { border-color: #2e7d32; color: #2e7d32; font-weight: 600; }
+    .country-panel {
+      position: absolute; top: 38px; left: 0; z-index: 300; width: 230px;
+      background: #fff; border: 1px solid #e0e4ea; border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12); overflow: hidden;
+    }
+    .country-search {
+      display: block; width: 100%; border: none; border-bottom: 1px solid #e8eaed;
+      padding: 8px 12px; font-size: 13px; outline: none; box-sizing: border-box;
+    }
+    .country-scroll { max-height: 240px; overflow-y: auto; }
+    .country-special { border-bottom: 1px solid #e8eaed; }
+    .country-opt {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 12px; font-size: 13px; cursor: pointer;
+    }
+    .country-opt:hover { background: #f6faf6; }
+    .country-opt input { accent-color: #2e7d32; width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; }
+    .country-opt.special { font-weight: 600; color: #1b5e20; }
+    .country-clear {
+      display: block; width: 100%; padding: 7px 12px; border: none;
+      border-top: 1px solid #e8eaed; background: none; font-size: 12px;
+      color: #888; cursor: pointer; text-align: left;
+    }
+    .country-clear:hover { color: #2e7d32; background: #f6faf6; }
+    .country-hint { font-size: 10px; color: #999; margin-top: 4px; }
 
     /* ── Multi-country toggle ── */
     .toggle-wrap { display: flex; align-items: center; gap: 7px; margin-top: 8px; cursor: pointer; user-select: none; }
@@ -222,12 +254,18 @@
 
     <div class="filter-group country-filter-group">
       <label>Country</label>
-      <select id="f-country" multiple size="5">
-        <option value="Multicountry" style="font-weight:600;color:#1b5e20">Multicountry</option>
-        <option value="Regional" style="font-weight:600;color:#1b5e20">Regional</option>
-        <option disabled>──────────────</option>
-      </select>
-      <div class="country-hint">Hold Ctrl / &#8984; to select multiple</div>
+      <details class="country-details" id="country-details">
+        <summary id="country-summary">All countries &#9662;</summary>
+        <div class="country-panel">
+          <input class="country-search" id="country-search" type="text" placeholder="Search countries&#8230;">
+          <div class="country-scroll">
+            <div class="country-special" id="country-special"></div>
+            <div id="country-list"></div>
+          </div>
+          <button class="country-clear" id="country-clear" type="button">Clear selection</button>
+        </div>
+      </details>
+      <div class="country-hint">Click to open &amp; select countries</div>
       <label class="toggle-wrap">
         <input type="checkbox" id="toggle-multicountry">
         <span class="toggle-track"></span>
@@ -349,16 +387,15 @@ function applyFilters() {
   const year      = document.getElementById('f-year').value;
   const type      = document.getElementById('f-type').value;
   const sovereign = document.getElementById('f-sovereign').value;
-  const selCountries = [...document.getElementById('f-country').selectedOptions].map(o => o.value).filter(Boolean);
 
   const filtered = allData.filter(r => {
     if (mdb      && r.mdb      !== mdb)           return false;
     if (year     && String(r.year)  !== year)     return false;
     if (type     && r.type      !== type)         return false;
     if (sovereign && r.sovereign !== sovereign)    return false;
-    if (selCountries.length > 0) {
+    if (selectedCountries.size > 0) {
       const c = r.country || '';
-      const match = selCountries.some(sel => {
+      const match = [...selectedCountries].some(sel => {
         if (sel === 'Multicountry') return c.includes(';') || c === 'Multicountry';
         if (sel === 'Regional')     return c.includes('Regional');
         const includeMulti = document.getElementById('toggle-multicountry').checked;
@@ -385,9 +422,42 @@ function populateMDBs() {
   mdbs.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; sel.appendChild(o); });
 }
 
+let selectedCountries = new Set();
+
+function updateCountrySummary() {
+  const s = document.getElementById('country-summary');
+  if (selectedCountries.size === 0) {
+    s.textContent = 'All countries ▾';
+    s.classList.remove('has-selection');
+  } else {
+    s.textContent = selectedCountries.size + ' selected ▾';
+    s.classList.add('has-selection');
+  }
+}
+
+function makeCountryOpt(value, text, isSpecial, container) {
+  const lbl = document.createElement('label');
+  lbl.className = 'country-opt' + (isSpecial ? ' special' : '');
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.addEventListener('change', function() {
+    if (cb.checked) selectedCountries.add(value);
+    else selectedCountries.delete(value);
+    updateCountrySummary();
+    applyFilters();
+  });
+  lbl.appendChild(cb);
+  lbl.appendChild(document.createTextNode(' ' + text));
+  container.appendChild(lbl);
+}
+
 function populateCountries() {
-  const sel = document.getElementById('f-country');
-  // Deduplicate case-insensitively, keep original casing, sort A-Z
+  const special = document.getElementById('country-special');
+  const list    = document.getElementById('country-list');
+
+  makeCountryOpt('Multicountry', 'Multicountry', true, special);
+  makeCountryOpt('Regional',     'Regional',     true, special);
+
   const seen = new Map();
   allData.forEach(r => {
     const c = r.country;
@@ -397,12 +467,21 @@ function populateCountries() {
     }
   });
   const singles = [...seen.values()].sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}));
-  singles.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c; o.textContent = c;
-    sel.appendChild(o);
+  singles.forEach(c => makeCountryOpt(c, c, false, list));
+
+  document.getElementById('country-search').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    list.querySelectorAll('.country-opt').forEach(el => {
+      el.style.display = el.textContent.trim().toLowerCase().includes(q) ? '' : 'none';
+    });
   });
-  sel.addEventListener('change', applyFilters);
+
+  document.getElementById('country-clear').addEventListener('click', function() {
+    selectedCountries.clear();
+    document.querySelectorAll('#country-special input, #country-list input').forEach(cb => cb.checked = false);
+    updateCountrySummary();
+    applyFilters();
+  });
 }
 
 // ── Column visibility toggle ──
@@ -474,7 +553,9 @@ function bindFilters() {
     ['f-mdb','f-year','f-type','f-sovereign'].forEach(id => {
       document.getElementById(id).value = '';
     });
-    [...document.getElementById('f-country').options].forEach(o => o.selected = false);
+    selectedCountries.clear();
+    document.querySelectorAll('#country-special input, #country-list input').forEach(cb => cb.checked = false);
+    updateCountrySummary();
     document.getElementById('toggle-multicountry').checked = false;
     applyFilters();
   });
