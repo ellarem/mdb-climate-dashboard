@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MDB Climate Finance Dashboard</title>
-  <!-- v3 -->
+  <!-- v4 - UX improvements -->
   <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css">
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
   <style>
@@ -173,6 +173,31 @@
       color: #999;
     }
     footer a { color: #2e7d32; }
+
+    /* ── KPI strip ── */
+    .kpi-strip { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .kpi-card { background: #fff; border: 1px solid #e0e4ea; border-radius: 8px; padding: 14px 20px; flex: 1; min-width: 160px; }
+    .kpi-value { font-size: 20px; font-weight: 700; color: #1b5e20; }
+    .kpi-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+    /* ── Column toggle ── */
+    .col-toggle-wrap { position: relative; align-self: flex-end; }
+    .btn-cols { height: 34px; padding: 0 14px; background: #fff; border: 1px solid #d0d5dd; border-radius: 6px; font-size: 13px; color: #555; cursor: pointer; transition: all 0.15s; }
+    .btn-cols:hover { border-color: #2e7d32; color: #2e7d32; }
+    .col-dropdown { display: none; position: absolute; top: 38px; right: 0; background: #fff; border: 1px solid #e0e4ea; border-radius: 8px; padding: 6px 0; min-width: 190px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 100; }
+    .col-dropdown.open { display: block; }
+    .col-item { display: flex; align-items: center; gap: 8px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+    .col-item:hover { background: #f6faf6; }
+    .col-item input[type=checkbox] { accent-color: #2e7d32; cursor: pointer; width: 14px; height: 14px; }
+
+    /* ── Export button ── */
+    .btn-export { height: 34px; padding: 0 16px; background: #2e7d32; border: none; border-radius: 6px; font-size: 13px; color: #fff; cursor: pointer; align-self: flex-end; transition: background 0.15s; }
+    .btn-export:hover { background: #1b5e20; }
+
+    /* ── Alternating row shading ── */
+    .tabulator-row:nth-child(even) { background: #f9fafb !important; }
+    .tabulator-row:nth-child(even):hover { background: #f0f7f0 !important; }
+
   </style>
 </head>
 <body>
@@ -226,6 +251,11 @@
     </div>
 
     <div class="filter-group">
+      <label>Country</label>
+      <select id="f-country"><option value="">All countries</option></select>
+    </div>
+
+    <div class="filter-group">
       <label>Type</label>
       <select id="f-type">
         <option value="">All types</option>
@@ -244,7 +274,21 @@
       </select>
     </div>
 
+    <div class="col-toggle-wrap">
+      <button class="btn-cols" id="btn-cols">Columns &#9662;</button>
+      <div class="col-dropdown" id="col-dropdown"></div>
+    </div>
+
     <button class="btn-reset" id="btn-reset">Reset filters</button>
+    <button class="btn-export" id="btn-export">Export CSV</button>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-value" id="kpi-projects">—</div><div class="kpi-label">Projects</div></div>
+    <div class="kpi-card"><div class="kpi-value" id="kpi-cf">—</div><div class="kpi-label">Climate finance reported</div></div>
+    <div class="kpi-card"><div class="kpi-value" id="kpi-mit">—</div><div class="kpi-label">Mitigation</div></div>
+    <div class="kpi-card"><div class="kpi-value" id="kpi-adp">—</div><div class="kpi-label">Adaptation</div></div>
   </div>
 
   <!-- Results bar -->
@@ -305,10 +349,17 @@ function fmtMonth(cell) {
 function updateResultsBar(rows) {
   const n = rows.length;
   const total = rows.reduce((s, r) => s + (r.climate_finance || 0), 0);
+  const mit   = rows.reduce((s, r) => s + (r.mitigation    || 0), 0);
+  const adp   = rows.reduce((s, r) => s + (r.adaptation    || 0), 0);
+  const fmt = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'M';
   document.getElementById('result-count').innerHTML =
     `Showing <strong>${n.toLocaleString()}</strong> of <strong>${allData.length.toLocaleString()}</strong> projects`;
   document.getElementById('result-cf').innerHTML =
     `Total climate finance reported: <strong>$${total.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})}M</strong>`;
+  document.getElementById('kpi-projects').textContent = n.toLocaleString();
+  document.getElementById('kpi-cf').textContent = fmt(total);
+  document.getElementById('kpi-mit').textContent = fmt(mit);
+  document.getElementById('kpi-adp').textContent = fmt(adp);
 }
 
 // ── Apply all filters ──
@@ -319,6 +370,7 @@ function applyFilters() {
   const month    = document.getElementById('f-month').value;
   const type     = document.getElementById('f-type').value;
   const sovereign= document.getElementById('f-sovereign').value;
+  const country  = document.getElementById('f-country').value;
 
   const filtered = allData.filter(r => {
     if (mdb      && r.mdb      !== mdb)            return false;
@@ -326,8 +378,9 @@ function applyFilters() {
     if (month    && String(r.month) !== month)      return false;
     if (type     && r.type !== type)                return false;
     if (sovereign && r.sovereign !== sovereign)      return false;
+    if (country  && r.country   !== country)        return false;
     if (search) {
-      const haystack = ((r.project_name || '') + ' ' + (r.country || '')).toLowerCase();
+      const haystack = ((r.project_name || '') + ' ' + (r.country || '') + ' ' + (r.project_id || '')).toLowerCase();
       if (!haystack.includes(search))               return false;
     }
     return true;
@@ -349,19 +402,87 @@ function populateMDBs() {
   });
 }
 
+// ── Populate country dropdown ──
+function populateCountries() {
+  const countries = [...new Set(allData.map(r => r.country).filter(Boolean))].sort();
+  const sel = document.getElementById('f-country');
+  countries.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Column visibility toggle ──
+const TOGGLE_COLS = [
+  { field: 'project_id',       label: 'Project ID' },
+  { field: 'mdb',              label: 'MDB' },
+  { field: 'year',             label: 'Year' },
+  { field: 'month',            label: 'Month' },
+  { field: 'country',          label: 'Country' },
+  { field: 'type',             label: 'Type' },
+  { field: 'climate_finance',  label: 'Climate finance ($M)' },
+  { field: 'mitigation',       label: 'Mitigation ($M)' },
+  { field: 'adaptation',       label: 'Adaptation ($M)' },
+  { field: 'dual_use',         label: 'Dual-use ($M)' },
+  { field: 'total_commitment', label: 'Total commitment ($M)' },
+  { field: 'instrument',       label: 'Instrument' },
+  { field: 'sovereign',        label: 'Sovereign' },
+];
+
+function initColToggle() {
+  const dropdown = document.getElementById('col-dropdown');
+  TOGGLE_COLS.forEach(col => {
+    const label = document.createElement('label');
+    label.className = 'col-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.checked = true; cb.dataset.field = col.field;
+    cb.addEventListener('change', () => {
+      if (cb.checked) table.showColumn(col.field);
+      else table.hideColumn(col.field);
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(' ' + col.label));
+    dropdown.appendChild(label);
+  });
+  const btn = document.getElementById('btn-cols');
+  btn.addEventListener('click', e => { e.stopPropagation(); dropdown.classList.toggle('open'); });
+  document.addEventListener('click', () => dropdown.classList.remove('open'));
+}
+
+// ── Export to CSV ──
+function exportCSV() {
+  const fields  = ['project_name','project_id','mdb','year','month','country','type',
+    'climate_finance','mitigation','adaptation','dual_use','total_commitment','instrument','sovereign','url'];
+  const headers = ['Project name','Project ID','MDB','Year','Month','Country','Type',
+    'Climate finance ($M)','Mitigation ($M)','Adaptation ($M)','Dual-use ($M)',
+    'Total commitment ($M)','Instrument','Sovereign','URL'];
+  const rows = table.getData();
+  const esc = v => {
+    if (v === null || v === undefined) return '';
+    const s = String(v);
+    return (s.includes(',') || s.includes('"') || s.includes('\n')) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = [headers.join(','), ...rows.map(r => fields.map(f => esc(r[f])).join(','))].join('\n');
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'mdb-climate-finance.csv'; a.click();
+}
+
 // ── Wire up filter events ──
 function bindFilters() {
-  ['search','f-mdb','f-year','f-month','f-type','f-sovereign'].forEach(id => {
+  ['search','f-mdb','f-year','f-month','f-type','f-sovereign','f-country'].forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener(el.tagName === 'INPUT' ? 'input' : 'change', applyFilters);
   });
   document.getElementById('btn-reset').addEventListener('click', () => {
     document.getElementById('search').value = '';
-    ['f-mdb','f-year','f-month','f-type','f-sovereign'].forEach(id => {
+    ['f-mdb','f-year','f-month','f-type','f-sovereign','f-country'].forEach(id => {
       document.getElementById(id).value = '';
     });
     applyFilters();
   });
+  document.getElementById('btn-export').addEventListener('click', exportCSV);
 }
 
 // ── Init Tabulator ──
@@ -380,6 +501,7 @@ function initTable(data) {
         title: 'Project name',
         field: 'project_name',
         minWidth: 260,
+        frozen: true,
         formatter: fmtProject,
         variableHeight: true,
       },
