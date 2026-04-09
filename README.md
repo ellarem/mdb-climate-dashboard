@@ -8,9 +8,9 @@ Covering investments committed between 2021 and 2024 (01/01/2021–31/12/2024 fo
 
 ## 1. Purpose
 
-These two datasets compile publicly available investment-level climate finance data from eleven Multilateral Development Banks (MDBs) for the years 2021–2024. As only seven MDBs publish such data, the datasets are limited to these institutions.
+This dashboard compiles publicly available investment-level climate finance data from eleven Multilateral Development Banks (MDBs) for the years 2021–2024. As only seven MDBs publish such data, the datasets are limited to these institutions.
 
-They are designed to:
+It is designed to:
 
 - Provide stakeholders with accessible, standardised data
 - Offer a benchmark of good disclosure practice
@@ -19,11 +19,9 @@ They are designed to:
 
 ---
 
-## 2. Source dataset and enriched dataset
+## 2. Enriched data
 
-The **source dataset** contains only the information directly disclosed by MDBs in the original sources from which we extracted their project-level data.
-
-The **enriched dataset** is a more complete version where we have standardised, edited and, where necessary, supplemented the raw data with information from other MDB sources to fill gaps and improve comparability. This version aims to make the dataset as useful as possible to stakeholders.
+The dashboard presents our **enriched dataset** which is a complete version where we have standardised, edited and, where necessary, supplemented the raw data with information from other MDB sources to fill gaps and improve comparability. This version aims to make the dataset as useful as possible to stakeholders.
 
 ---
 
@@ -53,7 +51,6 @@ Includes only projects explicitly tagged as climate finance.
 - Mitigation / adaptation / dual-use amount (US$)
 - Project URL
 
-> **Note:** the *Matrix* tab only outlines the fields that MDBs themselves disclose in their climate finance data sources.
 
 ---
 
@@ -67,8 +64,6 @@ Includes only projects explicitly tagged as climate finance.
 ---
 
 ## 6. Data sources
-
-The **source dataset** draws only on the sources outlined in our methodology document.
 
 The **enriched dataset** draws on a mix of database, MDB project webpages and PDF sources, including sustainability, impact, and annual reports, as well as DFI climate finance databases.
 
