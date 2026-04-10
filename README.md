@@ -72,7 +72,7 @@ Includes only projects explicitly tagged as climate finance.
 
 The **enriched dataset** draws on a mix of database, MDB project webpages and PDF sources, including sustainability, impact, and annual reports, as well as DFI climate finance databases.
 
-Data in this database is limited to disclosures directly related to climate finance.
+Data in this dashboard is limited to disclosures directly related to climate finance.
 
 ---
 
