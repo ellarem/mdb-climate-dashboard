@@ -1,4 +1,4 @@
-# Publish What You Fund MDB Climate Finance Dataset (2021–2024)
+# Publish What You Fund MDB Climate Finance Dashboard (2021–2024)
 
 **Last updated:** 26/01/2026
 
