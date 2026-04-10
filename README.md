@@ -8,7 +8,7 @@ Covering investments committed between 2021 and 2024 (01/01/2021–31/12/2024 fo
 
 ## 1. Purpose
 
-This dashboard compiles publicly available investment-level climate finance data from eleven Multilateral Development Banks (MDBs) for the years 2021–2024. As only seven MDBs publish such data, the datasets are limited to these institutions.
+This dashboard compiles publicly available investment-level climate finance data from eleven Multilateral Development Banks (MDBs) for the years 2021–2024. As only seven MDBs publish such data, the dataset is limited to these institutions.
 
 It is designed to:
 
@@ -21,7 +21,7 @@ It is designed to:
 
 ## 2. Enriched data
 
-The dashboard presents our **enriched dataset** which is a complete version where we have standardised, edited and, where necessary, supplemented the raw data with information from other MDB sources to fill gaps and improve comparability. This version aims to make the dataset as useful as possible to stakeholders.
+The dashboard presents our **enriched dataset** which is a complete version than our **source dataset**. The enriched dataset has standardised, edited and, where necessary, supplemented the raw source data with information from other MDB sources to fill gaps and improve comparability. This version aims to make the dataset as useful as possible to stakeholders.
 
 ---
 
@@ -58,7 +58,7 @@ Includes only projects explicitly tagged as climate finance.
 
 | | |
 |---|---|
-| **Total unique investments identified (2021–2024)** | 6,498 |
+| **Total unique transactions identified (2021–2024)** | 6,498 |
 | **Total disclosed climate finance** | USD 366 billion |
 
 ---
