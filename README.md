@@ -28,7 +28,7 @@ The dashboard presents our **enriched dataset** which is a complete version than
 ## 3. Scope
 
 | | |
-|---|---|
+
 | **MDBs examined** | AfDB, AIIB, AsDB, CEB, EBRD, EIB, IDB, IDB Invest, IsDB, NDB, WBG |
 | **MDBs covered** | AfDB, AIIB, AsDB, EBRD, EIB, IDB, IBRD/IDA (WBG) |
 
