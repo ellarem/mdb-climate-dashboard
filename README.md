@@ -59,8 +59,12 @@ Includes only projects explicitly tagged as climate finance.
 | | |
 |---|---|
 | **Total unique transactions identified (2021–2024)** | 6,498 |
-| **Total transaction rows (2021–2024)** | 8,102 |
+| **Total transaction rows (2021–2024)** | 8,102* |
 | **Total disclosed climate finance** | USD 366 billion |
+
+*Some MDBs disaggregate individual transactions across multiple rows to enable classification by variables such as sector, country, or financial instrument. Unique transactions were identified using project IDs where available, or project names where project IDs were not disclosed. The difference between total rows and unique transactions reflects this disaggregation in source data.
+
+---
 
 ---
 
