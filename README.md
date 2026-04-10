@@ -59,6 +59,7 @@ Includes only projects explicitly tagged as climate finance.
 | | |
 |---|---|
 | **Total unique transactions identified (2021–2024)** | 6,498 |
+| **Total transaction rows (2021–2024)** | 8,102 |
 | **Total disclosed climate finance** | USD 366 billion |
 
 ---
