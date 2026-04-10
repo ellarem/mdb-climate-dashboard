@@ -21,7 +21,7 @@ It is designed to:
 
 ## 2. Enriched data
 
-The dashboard presents our **enriched dataset** which is a complete version than our **source dataset**. The enriched dataset has standardised, edited and, where necessary, supplemented the raw source data with information from other MDB sources to fill gaps and improve comparability. This version aims to make the dataset as useful as possible to stakeholders.
+The dashboard presents our **enriched dataset** which is a more complete version of our **source dataset**. The enriched dataset has standardised, edited and, where necessary, supplemented the raw source data with information from other MDB sources to fill gaps and improve comparability. This version aims to make the dataset as useful as possible to stakeholders.
 
 ---
 
